@@ -1,0 +1,3 @@
+include ':beenative'
+include ':app'
+rootProject.name = "BeeNative"
