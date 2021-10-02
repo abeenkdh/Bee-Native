@@ -3,6 +3,7 @@ package com.bstudio.beenative
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +11,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatRatingBar
-import com.google.android.gms.ads.AdLoader
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.*
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
@@ -20,16 +19,25 @@ import com.makeramen.roundedimageview.RoundedImageView
 
 class BeeNative {
     companion object {
-        private var nativeAds: NativeAd? = null
+        @JvmStatic
+        var nativeAds: NativeAd? = null
 
         @SuppressLint("MissingPermission")
-        fun loadNativeAds(context: Context, nativeId: String, block: (NativeAd) -> Unit){
+        fun loadNativeAds(context: Context, nativeId: String, block: () -> Unit){
             MobileAds.initialize(context)
             val nativeLoader = AdLoader.Builder(context, nativeId)
                 .forNativeAd { nativeAd ->
                     nativeAds = nativeAd
-                    block.invoke(nativeAd)
-                }.build()
+                    block.invoke()
+                }
+                .withAdListener(object : AdListener(){
+                    override fun onAdFailedToLoad(p0: LoadAdError) {
+                        super.onAdFailedToLoad(p0)
+                        Log.e("ABENK : ", p0.message)
+                        block.invoke()
+                    }
+                })
+                .build()
             nativeLoader.loadAd(AdRequest.Builder().build())
         }
 
